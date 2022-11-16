@@ -1,0 +1,19 @@
+{
+  "name": "elm-ix-dict",
+  "version": "0.1.0",
+  "description": "A Dict data structure that derives keys from values. Wraps around elm/core/Dict",
+  "main": "src/IxDict.elm",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "npx elm-test"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "elm": "^0.19.1-5",
+    "elm-format": "^0.8.5",
+    "elm-test": "^0.19.1-revision10"
+  }
+}
