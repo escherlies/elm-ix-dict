@@ -120,7 +120,7 @@ tests =
                         in
                         equalIxDicts
                             ixdT
-                            (IxDict.mapValuesUnsafe (\_ -> Tuple.mapSecond String.toUpper) ixd)
+                            (IxDict.map (\_ -> Tuple.mapSecond String.toUpper) ixd)
                 ]
     in
     describe "Dict Tests"

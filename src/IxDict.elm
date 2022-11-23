@@ -1,4 +1,4 @@
-module IxDict exposing (IxDict, bimap, diff, empty, emptyFromId, emptyFromTuple, foldl, foldr, fromDictBy, fromListBy, get, insert, intersect, isEmpty, keep, keys, mapValuesUnsafe, member, partition, reject, remove, singleton, singletonFromId, singletonFromTuple, size, toDict, toList, union, values)
+module IxDict exposing (IxDict, diff, empty, emptyFromId, emptyFromTuple, filter, foldl, foldr, fromDictBy, fromListBy, get, insert, intersect, isEmpty, keep, keys, map, mapWith, member, memberByIx, memberExact, partition, reject, remove, singleton, singletonFromId, singletonFromTuple, size, toDict, toList, union, values)
 
 import Dict exposing (Dict)
 
@@ -65,15 +65,23 @@ member key (IxDict _ dict) =
     Dict.member key dict
 
 
-{-| Get the value associated with a key. If the key is not found, return
-`Nothing`. This is useful when you are not sure if a key will be in the
-dictionary.
+{-| Determine if a value is in a dictionary, only by comparing keys.
+-}
+memberByIx : v -> IxDict comparable v -> Bool
+memberByIx value (IxDict keyFn dict) =
+    Dict.member (keyFn value) dict
 
-    animals = fromListBy Tuple.first [ ("Tom", Cat), ("Jerry", Mouse) ]
-    get "Tom" animals == Just Cat
-    get "Jerry" animals == Just Mouse
-    get "Spike" animals == Nothing
 
+{-| Determine if a value is structually in a dictionary.
+-}
+memberExact : v -> IxDict comparable v -> Bool
+memberExact value (IxDict keyFn dict) =
+    Dict.get (keyFn value) dict
+        |> Maybe.map (\dictV -> dictV == value)
+        |> Maybe.withDefault False
+
+
+{-| Get the value associated with a key.
 -}
 get : comparable -> IxDict comparable v -> Maybe v
 get k (IxDict _ dict) =
@@ -108,29 +116,20 @@ toList =
     Dict.toList << toDict
 
 
-{-| Unsafely map over values.
+{-| Map a function onto a ixDict, creating a new ixDict with no duplicates.
 
-It's unsafe because one can change the id values.
-
-This implementation is also expensive as it rebuilds the dictionary.
-
-Of course you cannot change the data type of the values.
-
-For that, use bimap and provide a fresh keyFn.
+This operation is not structure-preserving for sets, so is not a valid Functor. An example case: mapping const x over a ixDict with n > 0 elements will result in a ixDict with one element.
 
 -}
-mapValuesUnsafe : (comparable -> b -> b) -> IxDict comparable b -> IxDict comparable b
-mapValuesUnsafe fn (IxDict keyFn current) =
+map : (comparable -> b -> b) -> IxDict comparable b -> IxDict comparable b
+map fn (IxDict keyFn current) =
     fromDictBy keyFn (Dict.map fn current)
 
 
-{-| Transform keys and value
-
-Since keyFn relys on the values of that dict, mapping the values requires also providing a new mapping function, due to the limitations of Elm
-
+{-| Transform values and rebuild the dict with a new keyFn
 -}
-bimap : (b -> comparable) -> (comparable -> a -> b) -> IxDict comparable a -> IxDict comparable b
-bimap ixfn fn current =
+mapWith : (b -> comparable) -> (comparable -> a -> b) -> IxDict comparable a -> IxDict comparable b
+mapWith ixfn fn current =
     fromDictBy ixfn (Dict.map fn (toDict current))
 
 
@@ -152,6 +151,17 @@ foldr fn acc =
 -- Save operations that do not alter the data structure
 
 
+{-| Filter... use keep or reject instead.
+
+Don't fall for that dichotomy where you don't know whether the filter function
+keeps all matching or filters out (rejects) all matching values.
+
+-}
+filter : Never -> a
+filter =
+    never
+
+
 keep : (comparable -> v -> Bool) -> IxDict comparable v -> IxDict comparable v
 keep fn (IxDict keyFn dict) =
     IxDict keyFn (Dict.filter fn dict)
@@ -168,18 +178,18 @@ partition fn (IxDict keyFn dict) =
 
 
 union : IxDict comparable v -> IxDict comparable v -> IxDict comparable v
-union (IxDict keyFn d1) ixd2 =
-    IxDict keyFn <| Dict.union d1 (toDict ixd2)
+union (IxDict keyFn d1) (IxDict _ d2) =
+    IxDict keyFn <| Dict.union d1 d2
 
 
 intersect : IxDict comparable v -> IxDict comparable v -> IxDict comparable v
-intersect (IxDict keyFn d1) ixd2 =
-    IxDict keyFn <| Dict.intersect d1 (toDict ixd2)
+intersect (IxDict keyFn d1) (IxDict _ d2) =
+    IxDict keyFn <| Dict.intersect d1 d2
 
 
 diff : IxDict comparable v -> IxDict comparable v -> IxDict comparable v
-diff (IxDict keyFn d1) ixd2 =
-    IxDict keyFn <| Dict.diff d1 (toDict ixd2)
+diff (IxDict keyFn d1) (IxDict _ d2) =
+    IxDict keyFn <| Dict.diff d1 d2
 
 
 

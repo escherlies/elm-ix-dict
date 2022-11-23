@@ -1,13 +1,10 @@
 # elm-ix-dict
 
-***⚠️ Experimental, use with caution.*** (see [Caveats](#caveats) section)
-
-An experimental Dict data structure that derives keys from values. It provides a safe and lazy way to work with indexed data structures and wraps around elm/core/Dict
-
+An experimental Dict data structure that derives keys from values. It provides a safe and lazy way to work with indexed data structures and wraps around elm/core/Dict.
 
 ## Quick start
 
-Use `singleton`, `empty` or `fromListBy` to create and IxDict using a key function
+Use `singleton`, `empty` or `fromListBy` to create and IxDict using a key function:
 
 ```elm
 type alias User =
@@ -46,7 +43,7 @@ tuples =
         |> IxDict.get 3
 ```
 
-You also get sets out of the box. (Although you might want to use the core/Set library)
+You also get sets out of the box. (Although you might want to use the core/Set library, which actually uses `Dict s ()` under the hood!)
 
 ```elm
 set =
@@ -84,15 +81,10 @@ two problems arise from this approach:
 
 ## Notes
 
-Inspired by [purescript-ix-maps](https://github.com/thought2/purescript-ix-maps)
+Having encountered the same problem in PureScript, Michael inspired me to generalize it into a small library. Check out his [purescript-ix-maps](https://github.com/thought2/purescript-ix-maps)
 
-## Caveats
+### Structural non-perserving 
 
-### Unsafe constructor
+Using the IxDict data constructor alone is unsafe when doing operations, since it is not guaranteed that the keyFn is applied. It is not exported and you have to use `empty`, `singleton`, `fromListBy` or `fromDictBy` to construct your IxDict.
 
-Using the IxDict data constructor is unsafe when doing operations. It is not exported and you have to use `empty`, `singleton`,`fromListBy` or `fromDictBy` to construct you IxDict.
-
-### Unsafe transformations
-
-Operations that transform values are in general unsafe, as they could alter the `Id` part of the data structure. (I.e. mapping over values and changing `.id` field). Therefore, when doing transformations, we rebuild the IxDict internally. This is costly and can produce unwanted effects.
-
+Also, the map fn is not a valid Functor as it is not structure-preserving. An example case: mapping const x over an ixDict with n > 1 elements will result in a set with one element.
