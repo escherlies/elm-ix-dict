@@ -207,9 +207,6 @@ toList =
 
 
 {-| Map a function onto a ixDict, creating a new ixDict with no duplicates.
-
-This operation is not structure-preserving for sets, so is not a valid Functor. An example case: mapping const x over a ixDict with n > 0 elements will result in a ixDict with one element.
-
 -}
 map : (comparable -> b -> b) -> IxDict comparable b -> IxDict comparable b
 map fn (IxDict keyFn current) =
