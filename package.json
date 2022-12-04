@@ -1,6 +1,6 @@
 {
   "name": "elm-ix-dict",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A Dict data structure that derives keys from values. Wraps around elm/core/Dict",
   "main": "src/IxDict.elm",
   "directories": {
