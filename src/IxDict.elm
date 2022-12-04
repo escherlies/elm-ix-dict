@@ -59,10 +59,15 @@ Since it uses the underlying core/Dict module, insert, remove, and query operati
 import Dict exposing (Dict)
 
 
+{-| A dictionary of keys and values wrapped with a keyFn `(v -> k)` to derive
+keys from that dictionary.
+-}
 type IxDict k v
     = IxDict (v -> k) (Dict k v)
 
 
+{-| Convert an indexed dictionary into a normal dictionary
+-}
 toDict : IxDict k v -> Dict k v
 toDict (IxDict _ dict) =
     dict
@@ -92,6 +97,16 @@ fromListBy keyFn =
     IxDict keyFn << Dict.fromList << List.map (\v -> ( keyFn v, v ))
 
 
+{-| Create an indexed dictionary from a normal dictionary by providing a key fn.
+Esentially gets the dict values and uses fromListBy:
+
+    fromDictBy : (v -> comparable) -> Dict k v -> IxDict comparable v
+    fromDictBy keyFn =
+        fromListBy keyFn << Dict.values
+
+See `fromListBy` on how to use it.
+
+-}
 fromDictBy : (v -> comparable) -> Dict k v -> IxDict comparable v
 fromDictBy keyFn =
     fromListBy keyFn << Dict.values
@@ -212,11 +227,15 @@ mapWith ixfn fn current =
 -- Reduce
 
 
+{-| Fold over the key-value pairs in an indexed dictionary from lowest key to highest key.
+-}
 foldl : (k -> v -> b -> b) -> b -> IxDict k v -> b
 foldl fn acc =
     Dict.foldl fn acc << toDict
 
 
+{-| Fold over the key-value pairs in an indexed dictionary from highest key to lowest key.
+-}
 foldr : (k -> v -> b -> b) -> b -> IxDict k v -> b
 foldr fn acc =
     Dict.foldr fn acc << toDict
@@ -252,21 +271,29 @@ reject fn (IxDict keyFn dict) =
     IxDict keyFn (Dict.filter (\k v -> not (fn k v)) dict)
 
 
+{-| Partition an indexed dictionary according to some test. The first dictionary contains all key-value pairs which passed the test, and the second contains the pairs that did not.
+-}
 partition : (comparable -> v -> Bool) -> IxDict comparable v -> ( IxDict comparable v, IxDict comparable v )
 partition fn (IxDict keyFn dict) =
     Tuple.mapBoth (IxDict keyFn) (IxDict keyFn) (Dict.partition fn dict)
 
 
+{-| Combine two indexed dictionaries. If there is a collision, preference is given to the first indexed dictionary.
+-}
 union : IxDict comparable v -> IxDict comparable v -> IxDict comparable v
 union (IxDict keyFn d1) (IxDict _ d2) =
     IxDict keyFn <| Dict.union d1 d2
 
 
+{-| Keep a key-value pair when its key appears in the second indexed dictionary. Preference is given to values in the first indexed dictionary.
+-}
 intersect : IxDict comparable v -> IxDict comparable v -> IxDict comparable v
 intersect (IxDict keyFn d1) (IxDict _ d2) =
     IxDict keyFn <| Dict.intersect d1 d2
 
 
+{-| Keep a key-value pair when its key does not appear in the second indexed dictionary.
+-}
 diff : IxDict comparable v -> IxDict comparable v -> IxDict comparable v
 diff (IxDict keyFn d1) (IxDict _ d2) =
     IxDict keyFn <| Dict.diff d1 d2
