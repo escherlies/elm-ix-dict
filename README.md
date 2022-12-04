@@ -1,6 +1,8 @@
 # elm-ix-dict
 
-An experimental Dict data structure that derives keys from values. It provides a safe and lazy way to work with indexed data structures and wraps around elm/core/Dict.
+Indexed Dictionaries
+
+A Dict data structure that derives keys from values. It provides a safe and lazy way to work with indexed data structures and wraps around elm/core/Dict.
 
 ## Quick start
 

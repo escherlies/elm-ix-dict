@@ -1,4 +1,60 @@
-module IxDict exposing (IxDict, diff, empty, emptyFromId, emptyFromTuple, filter, foldl, foldr, fromDictBy, fromListBy, get, insert, intersect, isEmpty, keep, keys, map, mapWith, member, memberByIx, memberExact, partition, reject, remove, singleton, singletonFromId, singletonFromTuple, size, toDict, toList, union, values)
+module IxDict exposing
+    ( IxDict
+    , toDict, fromListBy, fromDictBy, empty, singleton
+    , insert, remove
+    , isEmpty, member, memberByIx, memberExact, get, size
+    , keys, values, toList
+    , map, mapWith, foldl, foldr, filter, keep, reject, partition
+    , union, intersect, diff
+    , emptyFromTuple, emptyFromId, singletonFromTuple, singletonFromId
+    )
+
+{-| A Dict data structure that derives keys from values. The keys can be any comparable
+type. This includes `Int`, `Float`, `Time`, `Char`, `String`, and tuples or
+lists of comparable types.
+Since it uses the underlying core/Dict module, insert, remove, and query operations all take _O(log n)_ time.
+
+
+# Indexed Dictionaries
+
+@docs IxDict
+
+
+# Create
+
+@docs toDict, fromListBy, fromDictBy, empty, singleton
+
+
+# Manipulate
+
+@docs insert, remove
+
+
+# Query
+
+@docs isEmpty, member, memberByIx, memberExact, get, size
+
+
+# Lists
+
+@docs keys, values, toList, fromListBy, fromDictBy
+
+
+# Transform
+
+@docs map, mapWith, foldl, foldr, filter, keep, reject, partition
+
+
+# Combine
+
+@docs union, intersect, diff
+
+
+# Convenience
+
+@docs emptyFromTuple, emptyFromId, singletonFromTuple, singletonFromId
+
+-}
 
 import Dict exposing (Dict)
 
@@ -12,6 +68,25 @@ toDict (IxDict _ dict) =
     dict
 
 
+{-| Create an indexed dictionary from list by providing a key fn.
+
+    users : IxDict.IxDict String User
+    users =
+        IxDict.fromListBy .id
+            [ User "alice" "Alice"
+            , User "bob" "Bob"
+            ]
+
+    type alias User =
+        { id : String, name : String }
+
+    updated : IxDict.IxDict String User
+    updated =
+        users
+            |> IxDict.insert (User "charlie" "Charlie")
+            |> IxDict.remove "bob"
+
+-}
 fromListBy : (v -> comparable) -> List v -> IxDict comparable v
 fromListBy keyFn =
     IxDict keyFn << Dict.fromList << List.map (\v -> ( keyFn v, v ))
@@ -151,10 +226,11 @@ foldr fn acc =
 -- Save operations that do not alter the data structure
 
 
-{-| Filter... use keep or reject instead.
+{-| Filter... use `keep` or `reject` instead.
 
-Don't fall for that dichotomy where you don't know whether the filter function
-keeps all matching or filters out (rejects) all matching values.
+Because, what does it filter? Do you want the filtered product like coffee
+(in this case, use reject) or the remaining good part like gold pannig (in this
+case, use keep)
 
 -}
 filter : Never -> a
@@ -162,11 +238,15 @@ filter =
     never
 
 
+{-| Keep only the key-value pairs that pass the given test.
+-}
 keep : (comparable -> v -> Bool) -> IxDict comparable v -> IxDict comparable v
 keep fn (IxDict keyFn dict) =
     IxDict keyFn (Dict.filter fn dict)
 
 
+{-| Reject all key-value pairs that for a given test
+-}
 reject : (comparable -> v -> Bool) -> IxDict comparable v -> IxDict comparable v
 reject fn (IxDict keyFn dict) =
     IxDict keyFn (Dict.filter (\k v -> not (fn k v)) dict)
