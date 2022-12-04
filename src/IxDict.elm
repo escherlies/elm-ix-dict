@@ -37,7 +37,7 @@ Since it uses the underlying core/Dict module, insert, remove, and query operati
 
 # Lists
 
-@docs keys, values, toList, fromListBy, fromDictBy
+@docs keys, values, toList
 
 
 # Transform
